@@ -1,9 +1,4 @@
-# *
 User-agent: *
 Allow: /
 
-# Host
-Host: https://umidjon-blog.site
-
-# Sitemaps
 Sitemap: https://umidjon-blog.site/sitemap.xml
