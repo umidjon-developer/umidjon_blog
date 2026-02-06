@@ -1,23 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
   <sitemap>
     <loc>https://umidjon-blog.site/</loc>
     <lastmod>2025-10-06T00:00:00+00:00</lastmod>
   </sitemap>
+
   <sitemap>
     <loc>https://umidjon-blog.site/about</loc>
     <lastmod>2025-10-06T00:00:00+00:00</lastmod>
   </sitemap>
+
   <sitemap>
     <loc>https://umidjon-blog.site/blogs</loc>
     <lastmod>2025-10-06T00:00:00+00:00</lastmod>
   </sitemap>
+
   <sitemap>
     <loc>https://umidjon-blog.site/archive</loc>
     <lastmod>2025-10-06T00:00:00+00:00</lastmod>
   </sitemap>
+
   <sitemap>
     <loc>https://umidjon-blog.site/contact</loc>
     <lastmod>2025-10-06T00:00:00+00:00</lastmod>
   </sitemap>
+
 </sitemapindex>
