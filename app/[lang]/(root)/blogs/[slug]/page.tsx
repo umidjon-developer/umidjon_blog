@@ -1,8 +1,8 @@
 // ./app/[lang]/(root)/blogs/[slug]/page.tsx
+
 import { getReadingTime } from "@/lib/utils";
 import { getDetailedBlog } from "@/service/blog.service";
 import { format } from "date-fns";
-import parse from "html-react-parser";
 import { ArrowUpRight, CalendarDays, Clock, Minus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,6 +12,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth";
 import GetCommentCard from "@/components/comment/get-comment-card";
 import { getCommentsByPostId, UserIdAuthorId } from "@/actions/commit.actions";
+import ParsedHTML from "./ParsedHTML";
 
 type Author = {
   id: string;
@@ -40,6 +41,7 @@ export async function generateMetadata({
     params.slug,
     params?.lang
   )) as Blog | null;
+
   return {
     title: blog?.title,
     description: blog?.description,
@@ -59,10 +61,15 @@ async function SlugPage({
     params.slug,
     params?.lang
   )) as Blog | null;
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id; // ✅ no non-null assertion
 
-  const isCommit = await UserIdAuthorId(userId!, params.slug);
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+
+  // ✅ SAFE: faqat user bo‘lsa query qilamiz
+  const isCommit = userId
+    ? await UserIdAuthorId(userId, params.slug)
+    : null;
+
   const getCommentCard = await getCommentsByPostId(params.slug);
 
   if (!blog) {
@@ -73,14 +80,22 @@ async function SlugPage({
     );
   }
 
-  // normalize comments and ensure author includes 'email'
+  // ✅ OLDINDAN hisoblash (hydration safe)
+  const readingTime = getReadingTime(blog.content.html);
+
+  // ✅ Date format safe
+  const formattedDate = format(
+    new Date(blog.createdAt),
+    "MMM dd, yyyy"
+  );
+
   const comments = Array.isArray(getCommentCard)
     ? getCommentCard.map((comment) => ({
         _id: String(comment._id),
         content: String(comment.content),
         author: {
           name: comment.author.name,
-          email: (comment?.author).email ?? "",
+          email: comment?.author?.email ?? "",
           image:
             (comment.author.image?.url ?? comment.author.image) || undefined,
         },
@@ -94,7 +109,7 @@ async function SlugPage({
   return (
     <div className="pt-[15vh] max-w-5xl mx-auto">
       <h1 className="lg:text-6xl md:text-5xl text-4xl font-creteRound">
-        {blog?.title}
+        {blog.title}
       </h1>
 
       <div className="flex items-center flex-wrap max-md:justify-center gap-4 mt-4">
@@ -108,15 +123,19 @@ async function SlugPage({
           />
           <p>by {blog.author.name}</p>
         </div>
+
         <Minus />
+
         <div className="flex items-center gap-2">
           <Clock className="w-5 h-5" />
-          <p>{getReadingTime(blog.content.html)} min read</p>
+          <p>{readingTime} min read</p>
         </div>
+
         <Minus />
+
         <div className="flex items-center gap-2">
           <CalendarDays className="w-5 h-5" />
-          <p>{format(new Date(blog.createdAt), "MMM dd, yyyy")}</p>
+          <p suppressHydrationWarning>{formattedDate}</p>
         </div>
       </div>
 
@@ -135,8 +154,10 @@ async function SlugPage({
             <ShareBtns />
           </div>
         </div>
+
         <div className="flex-1 prose dark:prose-invert">
-          {parse(blog.content.html)}
+          {/* ✅ HYDRATION SAFE */}
+          <ParsedHTML html={blog.content.html} />
         </div>
       </div>
 
@@ -146,20 +167,16 @@ async function SlugPage({
         <p className="text-center mt-10">
           Komment yozish uchun avval tizimga kiring
         </p>
+      ) : isCommit?.comments?.length ? (
+        <p className="text-center mt-10">
+          Siz faqat bitta komment qoldirishingiz mumkin
+        </p>
       ) : (
-        <>
-          {isCommit?.comments?.length ? (
-            <p className="text-center mt-10">
-              Siz faqat bitta komment qoldirishingiz mumkin
-            </p>
-          ) : (
-            <FormComment
-              postId={blog.slug}
-              authorId={userId}
-              slug={blog.slug}
-            />
-          )}
-        </>
+        <FormComment
+          postId={blog.slug}
+          authorId={userId}
+          slug={blog.slug}
+        />
       )}
 
       <div className="flex mt-6 gap-6 items-center max-md:flex-col">
@@ -170,11 +187,16 @@ async function SlugPage({
           height={155}
           className="rounded-md max-md:self-start"
         />
+
         <div className="flex-1 flex flex-col space-y-4">
-          <h2 className="text-3xl font-creteRound">{blog.author.name}</h2>
+          <h2 className="text-3xl font-creteRound">
+            {blog.author.name}
+          </h2>
+
           <p className="line-clamp-2 text-muted-foreground">
             {blog.author.bio}
           </p>
+
           <Link
             href={`/author/${blog.author.id}`}
             className="flex items-center gap-2 hover:text-blue-500 underline transition-colors"
