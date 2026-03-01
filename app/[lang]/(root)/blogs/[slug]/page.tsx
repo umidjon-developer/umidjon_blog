@@ -78,9 +78,9 @@ async function SlugPage({
   const userId = session?.user?.id;
 
   // ✅ SAFE: faqat user bo‘lsa query qilamiz
-  const isCommit = userId
-    ? await UserIdAuthorId(userId, params.slug)
-    : null;
+const isCommit = userId
+  ? await UserIdAuthorId(userId, params.slug)
+  : null;
 
   const getCommentCard = await getCommentsByPostId(params.slug);
 
