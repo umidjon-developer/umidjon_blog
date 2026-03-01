@@ -6,15 +6,24 @@ import { format } from "date-fns";
 import { ArrowUpRight, CalendarDays, Clock, Minus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import FormComment from "@/components/comment/form-comment";
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth";
-import GetCommentCard from "@/components/comment/get-comment-card";
+
 import { getCommentsByPostId, UserIdAuthorId } from "@/actions/commit.actions";
 import ParsedHTML from "./ParsedHTML";
 import dynamic from "next/dynamic";
 const ShareBtns = dynamic(
   () => import("../../_components/share-btns"),
+  { ssr: false }
+);
+const FormComment = dynamic(
+  () => import("@/components/comment/form-comment"),
+  { ssr: false }
+);
+
+const GetCommentCard = dynamic(
+  () => import("@/components/comment/get-comment-card"),
   { ssr: false }
 );
 type Author = {
